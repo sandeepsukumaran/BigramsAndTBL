@@ -7,7 +7,7 @@ def make_bigrams(input_list):
     :param input_list: list of words to be converted into bigrams
     """
     it = iter(input_list)
-    old = next(it,None)
+    old = next(it, None)
     for new in it:
         yield old, new
         old = new
@@ -49,9 +49,18 @@ if __name__ == "__main__":
     print("P(Word_i|Tag_i):")
 
     for word_tag_tuple, prob in word_tag_probabilities.items():
-        print(str(word_tag_tuple) + " " + str(prob))
+        if word_tag_tuple[0] == 'control':
+            print(str(word_tag_tuple) + " " + str(prob))
 
     print("P(tag_i|tag_i-1):")
 
     for tags_tuple, probability in tag_bigram_probabilities.items():
-        print(str(tags_tuple) + " " + str(probability))
+        if tags_tuple[0] in ('TO', 'POS') or tags_tuple[1] == 'DT':
+            print(str(tags_tuple) + " " + str(probability))
+
+    word_tag_probabilities = collections.Counter(word_tag_probabilities)
+    tag_bigram_probabilities = collections.Counter(tag_bigram_probabilities)
+    for t1 in ('NN', 'VB'):
+        for t2 in ('NN', 'VB'):
+            p = word_tag_probabilities[('control', t1)] * word_tag_probabilities[('control', t2)] * tag_bigram_probabilities[('TO', t1)] * tag_bigram_probabilities[(t1, 'DT')] * tag_bigram_probabilities[('POS', t2)]
+            print(t1+" "+t2+" : "+str(p))
