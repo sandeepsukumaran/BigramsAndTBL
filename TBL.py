@@ -79,20 +79,10 @@ def evaluate_end_condition():
     """
         Evaluate and return if error metric is low enough for termination.
     """
-    # Compare number of rules generated vs number required.
-    if not hasattr(evaluate_end_condition, "vb_to_nn"):
-        evaluate_end_condition.vb_to_nn = 0
-    if not hasattr(evaluate_end_condition, "nn_to_vb"):
-        evaluate_end_condition.nn_to_vb = 0
-
+    # If latest best transform has score less than threshold, stop
     newest_transform = transforms_queue[-1]
 
-    if newest_transform.from_tag == "VB" and newest_transform.to_tag == "NN":
-        evaluate_end_condition.vb_to_nn += 1
-    elif newest_transform.from_tag == "NN" and newest_transform.to_tag == "VB":
-        evaluate_end_condition.nn_to_vb += 1
-
-    return evaluate_end_condition.vb_to_nn >= 5 and evaluate_end_condition.nn_to_vb >= 5
+    return newest_transform.score <= 0
 
 
 class Best:
@@ -198,6 +188,12 @@ if __name__ == "__main__":
 
     tagged_corpus = ml_tagged_corpus(corpus, most_likely_tagged_words)
 
+    print("Most likely tag for sentence:")
+    sentence = ['The', 'president', 'wants', 'to', 'control', 'the', 'board', '\'s', 'control']
+    for word in sentence:
+        print(word+"_"+most_likely_tagged_words[word], end=" ")
+    print(".")
+
     while True:
         # Get potential relevant templates - irrelevant since
         # only one template
@@ -210,6 +206,7 @@ if __name__ == "__main__":
         print("Enqueued a transform.")
 
         if evaluate_end_condition():
+            del transforms_queue[-1]
             break
         # if len(transforms_queue) >= 20:
         #   break
